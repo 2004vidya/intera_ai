@@ -448,6 +448,10 @@ export default function Dashboard() {
       setMessages([]);
       return;
     }
+    // Guard: Do not overwrite local messages with a database fetch while streaming a response
+    if (loading) {
+      return;
+    }
     // If messages already loaded in Redux, use them
     const cached = chats[currentChatId]?.messages;
     if (cached && cached.length > 0) {
@@ -486,13 +490,21 @@ export default function Dashboard() {
 
     try {
       const socket = getSocket();
+      console.log("📤 sendMessage called with content:", content, "| currentChatIdRef:", currentChatIdRef.current);
+      console.log("Socket connection status:", socket.connected, "| socket ID:", socket.id);
+      
+      if (!socket.connected) {
+        throw new Error("Chat server is disconnected. Please refresh or log in again.");
+      }
+      
       socket.emit("send_message", { message: content, chatId: currentChatIdRef.current });
+      console.log("✅ Event 'send_message' emitted to server");
     } catch (err) {
-      console.error(err);
+      console.error("❌ Error in sendMessage:", err);
       setMessages((prev) =>
         prev.map((m) =>
           m.typing
-            ? { ...m, typing: false, content: "Failed to connect to chat server." }
+            ? { ...m, typing: false, content: err.message || "Failed to connect to chat server." }
             : m
         )
       );
