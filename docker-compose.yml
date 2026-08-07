@@ -1,11 +1,17 @@
-
 services:
   app:
     build: .
     container_name: intera_app
     ports:
       - "3000:3000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     env_file:
-    - .env
+      - .env
     restart: unless-stopped
-  
+  redis:
+    image: redis:7-alpine
+    container_name: intera_redis
+    ports:
+      - "6379:6379"

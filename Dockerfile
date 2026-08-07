@@ -1,4 +1,4 @@
-
+CI/CD with GitHub Actions
 # ---------- Step 1: Build Frontend ----------
 FROM node:20 AS frontend-build
 

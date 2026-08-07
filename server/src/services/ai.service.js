@@ -3,30 +3,57 @@ import { HumanMessage, SystemMessage ,AIMessage,tool,createAgent} from "langchai
 import { ChatMistralAI } from "@langchain/mistralai";
 import * as z from "zod";
 import { searchInternet } from "./internet.service.js";
+import redis from "../config/redis.js";
 
 const geminiModel = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash-lite",
   apiKey: process.env.GEMINI_API_KEY,
+  streaming:true
 });
 
 const mistralModel = new ChatMistralAI({
   model: "mistral-small-latest",
   apiKey: process.env.MISTRAL_API_KEY,
 });
+
+export function getCacheKey(query) {
+  return "chat:" + query.trim().toLowerCase().replace(/[^\w\s]/g, "").replace(/\s+/g, "_");
+}
+
 export async function generateResponse(messages) {
+  const lastMessage = messages && messages.length > 0 ? messages[messages.length - 1] : null;
+  if (!lastMessage) {
+    return "";
+  }
+  const query = lastMessage.content || "";
+  const key = getCacheKey(query);
+
+  const cached = await redis.get(key);
+
+  if (cached) {
+     console.log("✅ Cache Hit");
+    return cached;
+  }
+
+  console.log("❌ Cache Miss");
+
   const response = await agent.invoke({
-    messages:messages.map((msg) => {
-    if (msg.role === "user") {
-      return new HumanMessage(msg.content);
-    } else if (msg.role === "ai") {
-      return new AIMessage(msg.content);
-    } else {
-      return new SystemMessage(msg.content);
-    }
-  })
+    messages: messages.map((msg) => {
+      if (msg.role === "user") {
+        return new HumanMessage(msg.content);
+      } else if (msg.role === "ai") {
+        return new AIMessage(msg.content);
+      } else {
+        return new SystemMessage(msg.content);
+      }
+    })
   });
 
-  return response.messages[response.messages.length-1].text;
+  const replyText = response.messages[response.messages.length - 1].text;
+
+  await redis.set(key, replyText, "EX", 3600);
+
+  return replyText;
 }
 
 const searchInternetTool = tool(
