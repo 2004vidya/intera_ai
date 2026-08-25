@@ -18,8 +18,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { useChat } from "../hooks/useChat";
 import { setCurrentChatId, createNewChat, addNewMessage } from "../chat.slice";
+import { logout } from "../../auth/auth.slice";
+import { logoutApi } from "../../auth/service/auth.api";
 import { getSocket } from "../service/chat.socket";
 
 const navItems = [
@@ -355,6 +358,13 @@ export default function Dashboard() {
   const currentChatIdRef = useRef(currentChatId);
   const activeMessageContentRef = useRef("");
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logoutApi();
+    dispatch(logout());
+    navigate("/login");
+  };
 
   useEffect(() => {
     currentChatIdRef.current = currentChatId;
@@ -591,6 +601,27 @@ export default function Dashboard() {
             <button className="text-xs w-8 h-8 flex items-center justify-center rounded-xl"
               style={{ color: "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.04)" }}>
               ···
+            </button>
+            <button
+              onClick={handleLogout}
+              className="text-xs px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-1.5"
+              style={{
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.15)",
+                color: "rgba(239,68,68,0.6)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+                e.currentTarget.style.color = "rgba(239,68,68,0.9)";
+                e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+                e.currentTarget.style.color = "rgba(239,68,68,0.6)";
+                e.currentTarget.style.borderColor = "rgba(239,68,68,0.15)";
+              }}
+            >
+              ⎋ Logout
             </button>
           </div>
         </div>
