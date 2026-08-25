@@ -332,7 +332,7 @@ function ChatMessage({ msg, isNew }) {
 }
 
 export default function Dashboard() {
-  const { initializeSocket, handleSendMessage, handleGetChats, handleGetMessages } = useChat();
+  const { initializeSocket, handleGetChats, handleGetMessages } = useChat();
   const { chats, currentChatId } = useSelector((state) => state.chat);
   console.log('Current user:', chats);
 
@@ -370,7 +370,6 @@ export default function Dashboard() {
     currentChatIdRef.current = currentChatId;
   }, [currentChatId]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const socket = initializeSocket();
     handleGetChats();
@@ -381,7 +380,7 @@ export default function Dashboard() {
       dispatch(setCurrentChatId(chatId));
     });
 
-    socket.on("ai_chunk", ({ chatId, content }) => {
+    socket.on("ai_chunk", ({ content }) => {
       setMessages((prev) =>
         prev.map((m) => {
           if (m.role === "assistant" && (m.typing || m.streaming)) {
@@ -446,6 +445,7 @@ export default function Dashboard() {
       socket.off("ai_error");
       socket.off("connect_error");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -484,6 +484,7 @@ export default function Dashboard() {
         }
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChatId]);
 
   const sendMessage = async (text) => {

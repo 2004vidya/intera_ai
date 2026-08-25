@@ -8,6 +8,7 @@ const App = () => {
   const auth = useAuth();
   useEffect(() => {
     auth.handleGetMe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return (
    <RouterProvider router={router} />
