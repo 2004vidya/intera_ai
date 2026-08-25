@@ -97,5 +97,19 @@ const getMe = async (req, res) => {
     }
 }
 
+/**
+ * @description Logout user
+ * @route POST /api/auth/logout
+ * @access Private
+ */
+const logoutUser = (req, res) => {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+    });
+    res.status(200).json({ message: "Logged out successfully", success: true });
+}
 
-export { registerUser,loginUser,getMe };
+
+export { registerUser, loginUser, getMe, logoutUser };

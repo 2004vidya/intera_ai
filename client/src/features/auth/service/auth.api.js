@@ -36,3 +36,12 @@ export async function getMe(){
         console.log(error);
     }
 }
+
+export async function logoutApi(){
+    try{
+        const response = await api.post("/api/auth/logout");
+        return response.data;
+    }catch(error){
+        console.log(error);
+    }
+}

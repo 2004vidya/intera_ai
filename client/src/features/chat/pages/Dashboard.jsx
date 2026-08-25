@@ -18,8 +18,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { useChat } from "../hooks/useChat";
 import { setCurrentChatId, createNewChat, addNewMessage } from "../chat.slice";
+import { logout } from "../../auth/auth.slice";
+import { logoutApi } from "../../auth/service/auth.api";
 import { getSocket } from "../service/chat.socket";
 
 const navItems = [
@@ -329,7 +332,7 @@ function ChatMessage({ msg, isNew }) {
 }
 
 export default function Dashboard() {
-  const { initializeSocket, handleSendMessage, handleGetChats, handleGetMessages } = useChat();
+  const { initializeSocket, handleGetChats, handleGetMessages } = useChat();
   const { chats, currentChatId } = useSelector((state) => state.chat);
   console.log('Current user:', chats);
 
@@ -355,12 +358,18 @@ export default function Dashboard() {
   const currentChatIdRef = useRef(currentChatId);
   const activeMessageContentRef = useRef("");
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logoutApi();
+    dispatch(logout());
+    navigate("/login");
+  };
 
   useEffect(() => {
     currentChatIdRef.current = currentChatId;
   }, [currentChatId]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const socket = initializeSocket();
     handleGetChats();
@@ -371,7 +380,7 @@ export default function Dashboard() {
       dispatch(setCurrentChatId(chatId));
     });
 
-    socket.on("ai_chunk", ({ chatId, content }) => {
+    socket.on("ai_chunk", ({ content }) => {
       setMessages((prev) =>
         prev.map((m) => {
           if (m.role === "assistant" && (m.typing || m.streaming)) {
@@ -436,6 +445,7 @@ export default function Dashboard() {
       socket.off("ai_error");
       socket.off("connect_error");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -474,6 +484,7 @@ export default function Dashboard() {
         }
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChatId]);
 
   const sendMessage = async (text) => {
@@ -591,6 +602,27 @@ export default function Dashboard() {
             <button className="text-xs w-8 h-8 flex items-center justify-center rounded-xl"
               style={{ color: "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.04)" }}>
               ···
+            </button>
+            <button
+              onClick={handleLogout}
+              className="text-xs px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-1.5"
+              style={{
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.15)",
+                color: "rgba(239,68,68,0.6)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+                e.currentTarget.style.color = "rgba(239,68,68,0.9)";
+                e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+                e.currentTarget.style.color = "rgba(239,68,68,0.6)";
+                e.currentTarget.style.borderColor = "rgba(239,68,68,0.15)";
+              }}
+            >
+              ⎋ Logout
             </button>
           </div>
         </div>

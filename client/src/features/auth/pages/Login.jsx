@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
 import { useSelector } from 'react-redux'
 import { Navigate } from 'react-router'
@@ -10,10 +9,8 @@ const Login = () => {
     password: '',
   })
 
-  const navigate = useNavigate()
   const { handleLogin } = useAuth()
   const user = useSelector((state) => state.auth.user)
-  const authError = useSelector((state) => state.auth.error)
   const loading = useSelector((state) => state.auth.loading)
 
   // Redirect if already logged in
